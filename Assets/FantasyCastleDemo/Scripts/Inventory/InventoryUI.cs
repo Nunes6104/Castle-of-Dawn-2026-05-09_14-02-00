@@ -1,128 +1,183 @@
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
+using StarterAssets;
 
 public class InventoryUI : MonoBehaviour
 {
-    [Header("UI References")]
+    [Header("Inventory UI")]
     [SerializeField] private GameObject inventoryPanel;
     [SerializeField] private Transform itemListParent;
     [SerializeField] private GameObject itemButtonPrefab;
-    [SerializeField] private TMP_Text descriptionText;
-    [SerializeField] private GameObject crosshair;
 
-    [Header("Player")]
-    [SerializeField] private MonoBehaviour playerController;
+    [Header("Item Details UI")]
+    [SerializeField] private Image selectedItemImage;
+    [SerializeField] private TMP_Text selectedItemTitleText;
+    [SerializeField] private TMP_Text selectedItemDescriptionText;
 
-    [Header("Text")]
-    [SerializeField] private string defaultDescriptionText = "Select an item to inspect it.";
+    [Header("Default Icon")]
+    [SerializeField] private Sprite defaultItemIcon;
 
     private bool isOpen = false;
+    private StarterAssetsInputs starterAssetsInputs;
 
     private void Start()
     {
-        inventoryPanel.SetActive(false);
-        descriptionText.text = defaultDescriptionText;
+        starterAssetsInputs = FindObjectOfType<StarterAssetsInputs>();
 
-        if (GameUIState.Instance != null)
+        if (inventoryPanel != null)
         {
-            GameUIState.Instance.SetInventoryOpen(false);
+            inventoryPanel.SetActive(false);
         }
 
-        if (crosshair != null)
-        {
-            crosshair.SetActive(true);
-        }
+        SetCursorAndCameraState(false);
+        ClearItemDetails();
     }
 
     private void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.tabKey.wasPressedThisFrame)
+        if (Input.GetKeyDown(KeyCode.Tab))
         {
-            if (GameUIState.Instance != null && GameUIState.Instance.IsCodePanelOpen)
-            {
-                return;
-            }
-
             ToggleInventory();
         }
     }
 
-    private void ToggleInventory()
+    public void ToggleInventory()
     {
         isOpen = !isOpen;
-        inventoryPanel.SetActive(isOpen);
 
-        if (GameUIState.Instance != null)
+        if (inventoryPanel != null)
         {
-            GameUIState.Instance.SetInventoryOpen(isOpen);
+            inventoryPanel.SetActive(isOpen);
         }
+
+        SetCursorAndCameraState(isOpen);
 
         if (isOpen)
         {
-            descriptionText.text = defaultDescriptionText;
-
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-
-            if (crosshair != null)
-            {
-                crosshair.SetActive(false);
-            }
-
-            if (playerController != null)
-            {
-                playerController.enabled = false;
-            }
-
-            RefreshInventoryUI();
+            RefreshInventory();
         }
         else
         {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            ClearItemDetails();
+        }
+    }
 
-            if (crosshair != null)
+    private void SetCursorAndCameraState(bool inventoryOpen)
+    {
+        if (inventoryOpen)
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+
+            if (starterAssetsInputs != null)
             {
-                crosshair.SetActive(true);
+                starterAssetsInputs.cursorInputForLook = false;
+                starterAssetsInputs.look = Vector2.zero;
             }
+        }
+        else
+        {
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
 
-            if (playerController != null)
+            if (starterAssetsInputs != null)
             {
-                playerController.enabled = true;
+                starterAssetsInputs.cursorInputForLook = true;
+                starterAssetsInputs.look = Vector2.zero;
             }
         }
     }
 
-    private void RefreshInventoryUI()
+    public void RefreshInventory()
     {
+        if (itemListParent == null || itemButtonPrefab == null)
+        {
+            Debug.LogWarning("InventoryUI is missing itemListParent or itemButtonPrefab.");
+            return;
+        }
+
         foreach (Transform child in itemListParent)
         {
             Destroy(child.gameObject);
         }
 
-        foreach (InventoryItemData item in InventoryManager.Instance.Items)
+        if (InventoryManager.Instance == null)
         {
-            GameObject buttonObj = Instantiate(itemButtonPrefab, itemListParent);
+            return;
+        }
 
-            TMP_Text buttonText = buttonObj.GetComponentInChildren<TMP_Text>();
+        foreach (InventoryItem item in InventoryManager.Instance.Items)
+        {
+            GameObject newButtonObject = Instantiate(itemButtonPrefab, itemListParent);
+
+            TMP_Text buttonText = newButtonObject.GetComponentInChildren<TMP_Text>();
             if (buttonText != null)
             {
                 buttonText.text = item.itemName;
             }
 
-            Button button = buttonObj.GetComponent<Button>();
+            Image[] images = newButtonObject.GetComponentsInChildren<Image>();
+            foreach (Image image in images)
+            {
+                if (image.gameObject != newButtonObject)
+                {
+                    image.sprite = item.itemIcon != null ? item.itemIcon : defaultItemIcon;
+                    image.enabled = image.sprite != null;
+                    break;
+                }
+            }
+
+            Button button = newButtonObject.GetComponent<Button>();
             if (button != null)
             {
-                InventoryItemData selectedItem = item;
-                button.onClick.AddListener(() => ShowDescription(selectedItem.description));
+                InventoryItem capturedItem = item;
+                button.onClick.AddListener(() => ShowItemDetails(capturedItem));
             }
         }
     }
 
-    private void ShowDescription(string description)
+    private void ShowItemDetails(InventoryItem item)
     {
-        descriptionText.text = description;
+        if (item == null)
+        {
+            ClearItemDetails();
+            return;
+        }
+
+        if (selectedItemTitleText != null)
+        {
+            selectedItemTitleText.text = item.itemName;
+        }
+
+        if (selectedItemDescriptionText != null)
+        {
+            selectedItemDescriptionText.text = item.itemDescription;
+        }
+
+        if (selectedItemImage != null)
+        {
+            selectedItemImage.sprite = item.itemIcon != null ? item.itemIcon : defaultItemIcon;
+            selectedItemImage.enabled = selectedItemImage.sprite != null;
+        }
+    }
+
+    private void ClearItemDetails()
+    {
+        if (selectedItemTitleText != null)
+        {
+            selectedItemTitleText.text = "";
+        }
+
+        if (selectedItemDescriptionText != null)
+        {
+            selectedItemDescriptionText.text = "";
+        }
+
+        if (selectedItemImage != null)
+        {
+            selectedItemImage.sprite = null;
+            selectedItemImage.enabled = false;
+        }
     }
 }

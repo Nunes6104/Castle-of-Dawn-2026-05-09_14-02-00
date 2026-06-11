@@ -2,20 +2,31 @@ using UnityEngine;
 
 public class PickupItem : MonoBehaviour, IInteractable
 {
-    [Header("Item Settings")]
-    [SerializeField] private string itemName = "PaperCode";
+    [Header("Item Data")]
+    [SerializeField] private string itemName = "ItemA";
 
     [TextArea]
-    [SerializeField] private string itemDescription = "A small paper with a handwritten code: 5937";
+    [SerializeField] private string itemDescription = "First gem found inside the chest. One of three items needed to open the final door.";
 
-    public string InteractionText => "Press E to pick up " + itemName;
+    [SerializeField] private Sprite itemIcon;
+
+    [Header("Interaction Text")]
+    [SerializeField] private string interactionText = "Press E to pick up item";
+
+    public string InteractionText => interactionText;
 
     public void Interact()
     {
-        InventoryManager.Instance.AddItem(itemName, itemDescription);
+        if (InventoryManager.Instance == null)
+        {
+            Debug.LogWarning("InventoryManager was not found in the scene.");
+            return;
+        }
 
-        UnityEngine.Debug.Log(itemDescription);
+        InventoryManager.Instance.AddItem(itemName, itemDescription, itemIcon);
 
-        Destroy(gameObject);
+        Debug.Log("Picked up item: " + itemName);
+
+        gameObject.SetActive(false);
     }
 }

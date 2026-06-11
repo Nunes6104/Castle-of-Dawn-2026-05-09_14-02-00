@@ -2,15 +2,17 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class InventoryItemData
+public class InventoryItem
 {
     public string itemName;
-    public string description;
+    public string itemDescription;
+    public Sprite itemIcon;
 
-    public InventoryItemData(string name, string desc)
+    public InventoryItem(string itemName, string itemDescription, Sprite itemIcon)
     {
-        itemName = name;
-        description = desc;
+        this.itemName = itemName;
+        this.itemDescription = itemDescription;
+        this.itemIcon = itemIcon;
     }
 }
 
@@ -18,13 +20,13 @@ public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager Instance { get; private set; }
 
-    private List<InventoryItemData> items = new List<InventoryItemData>();
+    private readonly List<InventoryItem> items = new List<InventoryItem>();
 
-    public List<InventoryItemData> Items => items;
+    public IReadOnlyList<InventoryItem> Items => items;
 
     private void Awake()
     {
-        if (Instance != null)
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -33,24 +35,29 @@ public class InventoryManager : MonoBehaviour
         Instance = this;
     }
 
-    public void AddItem(string itemName, string description)
+    public void AddItem(string itemName, string itemDescription, Sprite itemIcon = null)
     {
-        foreach (InventoryItemData item in items)
+        if (HasItem(itemName))
         {
-            if (item.itemName == itemName)
-            {
-                UnityEngine.Debug.Log("Item already exists: " + itemName);
-                return;
-            }
+            Debug.Log("Item already exists in inventory: " + itemName);
+            return;
         }
 
-        items.Add(new InventoryItemData(itemName, description));
-        UnityEngine.Debug.Log("Item added: " + itemName);
+        InventoryItem newItem = new InventoryItem(itemName, itemDescription, itemIcon);
+        items.Add(newItem);
+
+        Debug.Log("Added to inventory: " + itemName);
+
+        InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
+        if (inventoryUI != null)
+        {
+            inventoryUI.RefreshInventory();
+        }
     }
 
     public bool HasItem(string itemName)
     {
-        foreach (InventoryItemData item in items)
+        foreach (InventoryItem item in items)
         {
             if (item.itemName == itemName)
             {
@@ -61,9 +68,9 @@ public class InventoryManager : MonoBehaviour
         return false;
     }
 
-    public InventoryItemData GetItem(string itemName)
+    public InventoryItem GetItem(string itemName)
     {
-        foreach (InventoryItemData item in items)
+        foreach (InventoryItem item in items)
         {
             if (item.itemName == itemName)
             {
@@ -72,10 +79,5 @@ public class InventoryManager : MonoBehaviour
         }
 
         return null;
-    }
-
-    public bool HasAllFinalItems()
-    {
-        return HasItem("ItemA") && HasItem("ItemB") && HasItem("ItemC");
     }
 }
