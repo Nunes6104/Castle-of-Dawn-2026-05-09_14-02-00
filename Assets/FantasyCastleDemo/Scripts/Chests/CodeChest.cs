@@ -7,44 +7,77 @@ public class CodeChest : MonoBehaviour, IInteractable
     [SerializeField] private GameObject openChest;
 
     [Header("Code Settings")]
-    [SerializeField] private string requiredItem = "PaperCode";
     [SerializeField] private string correctCode = "5937";
 
-    [Header("Reward")]
-    [SerializeField] private string rewardItem = "ItemA";
+    [Header("Reward Object")]
+    [SerializeField] private GameObject rewardObject;
 
-    [TextArea]
-    [SerializeField] private string rewardDescription = "A mysterious item found inside the chest.";
+    [Header("Interaction Collider")]
+    [SerializeField] private Collider interactionCollider;
+
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip successSound;
+    [SerializeField] private AudioClip failureSound;
 
     private bool isOpen = false;
 
-    public string InteractionText => isOpen ? "Chest already opened" : "Press E to enter code";
+    public string InteractionText => isOpen ? "" : "Press E to enter code";
+
+    private void Start()
+    {
+        if (closedChest != null)
+        {
+            closedChest.SetActive(true);
+        }
+
+        if (openChest != null)
+        {
+            openChest.SetActive(false);
+        }
+
+        if (rewardObject != null)
+        {
+            rewardObject.SetActive(false);
+        }
+
+        if (interactionCollider != null)
+        {
+            interactionCollider.enabled = true;
+        }
+    }
 
     public void Interact()
     {
         if (isOpen)
         {
-            UnityEngine.Debug.Log("This chest is already open.");
             return;
         }
 
-        if (!InventoryManager.Instance.HasItem(requiredItem))
+        if (CodeChestUI.Instance != null)
         {
-            UnityEngine.Debug.Log("You need to find the paper with the code first.");
-            return;
+            CodeChestUI.Instance.OpenPanel(this);
         }
-
-        CodeChestUI.Instance.OpenPanel(this);
+        else
+        {
+            Debug.LogWarning("CodeChestUI was not found in the scene.");
+        }
     }
 
     public bool TryOpenWithCode(string enteredCode)
     {
+        if (isOpen)
+        {
+            return false;
+        }
+
         if (enteredCode == correctCode)
         {
             OpenChest();
             return true;
         }
 
+        PlayFailureSound();
         return false;
     }
 
@@ -62,8 +95,34 @@ public class CodeChest : MonoBehaviour, IInteractable
             openChest.SetActive(true);
         }
 
-        InventoryManager.Instance.AddItem(rewardItem, rewardDescription);
+        if (rewardObject != null)
+        {
+            rewardObject.SetActive(true);
+        }
 
-        UnityEngine.Debug.Log("Chest opened. You got: " + rewardItem);
+        if (interactionCollider != null)
+        {
+            interactionCollider.enabled = false;
+        }
+
+        PlaySuccessSound();
+
+        Debug.Log("Chest opened. Reward object is now available.");
+    }
+
+    private void PlaySuccessSound()
+    {
+        if (audioSource != null && successSound != null)
+        {
+            audioSource.PlayOneShot(successSound);
+        }
+    }
+
+    private void PlayFailureSound()
+    {
+        if (audioSource != null && failureSound != null)
+        {
+            audioSource.PlayOneShot(failureSound);
+        }
     }
 }
