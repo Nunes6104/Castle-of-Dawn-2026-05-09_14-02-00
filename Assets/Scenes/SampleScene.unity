@@ -62248,13 +62248,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   doorType: 1
   singleDoorTransform: {fileID: 0}
-  leftDoorTransform: {fileID: 1547903551}
-  rightDoorTransform: {fileID: 1922466472}
+  leftDoorTransform: {fileID: 1922466472}
+  rightDoorTransform: {fileID: 1547903551}
   audioSource: {fileID: 1444619584}
-  doorOpenSound: {fileID: 8300000, guid: 8641ceab762067d42a75c9dd5a5a7a23, type: 3}
-  doorCloseSound: {fileID: 8300000, guid: abc2ec17b90bd484e86b4e7d11e5c065, type: 3}
-  doubleDoorOpenSound: {fileID: 0}
-  doubleDoorCloseSound: {fileID: 0}
+  doorOpenSound: {fileID: 0}
+  doorCloseSound: {fileID: 0}
+  doubleDoorOpenSound: {fileID: 8300000, guid: 8641ceab762067d42a75c9dd5a5a7a23, type: 3}
+  doubleDoorCloseSound: {fileID: 8300000, guid: abc2ec17b90bd484e86b4e7d11e5c065,
+    type: 3}
   movementThreshold: 0.05
   invertOpenCloseDetection: 0
 --- !u!82 &1444619584
@@ -82053,10 +82054,11 @@ MonoBehaviour:
   leftDoorTransform: {fileID: 1829408131}
   rightDoorTransform: {fileID: 1031914479}
   audioSource: {fileID: 1885286626}
-  doorOpenSound: {fileID: 8300000, guid: 8641ceab762067d42a75c9dd5a5a7a23, type: 3}
-  doorCloseSound: {fileID: 8300000, guid: abc2ec17b90bd484e86b4e7d11e5c065, type: 3}
-  doubleDoorOpenSound: {fileID: 0}
-  doubleDoorCloseSound: {fileID: 0}
+  doorOpenSound: {fileID: 0}
+  doorCloseSound: {fileID: 0}
+  doubleDoorOpenSound: {fileID: 8300000, guid: 8641ceab762067d42a75c9dd5a5a7a23, type: 3}
+  doubleDoorCloseSound: {fileID: 8300000, guid: abc2ec17b90bd484e86b4e7d11e5c065,
+    type: 3}
   movementThreshold: 0.05
   invertOpenCloseDetection: 0
 --- !u!82 &1885286626
