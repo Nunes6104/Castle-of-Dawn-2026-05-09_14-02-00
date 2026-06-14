@@ -48,11 +48,27 @@ public class InventoryManager : MonoBehaviour
 
         Debug.Log("Added to inventory: " + itemName);
 
-        InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
-        if (inventoryUI != null)
+        RefreshInventoryUI();
+    }
+
+    public bool RemoveItem(string itemName)
+    {
+        for (int i = 0; i < items.Count; i++)
         {
-            inventoryUI.RefreshInventory();
+            if (items[i].itemName == itemName)
+            {
+                items.RemoveAt(i);
+
+                Debug.Log("Removed from inventory: " + itemName);
+
+                RefreshInventoryUI();
+
+                return true;
+            }
         }
+
+        Debug.LogWarning("Could not remove item because it was not found: " + itemName);
+        return false;
     }
 
     public bool HasItem(string itemName)
@@ -79,5 +95,15 @@ public class InventoryManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    private void RefreshInventoryUI()
+    {
+        InventoryUI inventoryUI = FindObjectOfType<InventoryUI>();
+
+        if (inventoryUI != null)
+        {
+            inventoryUI.RefreshInventory();
+        }
     }
 }

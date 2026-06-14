@@ -150,6 +150,11 @@ public class SymbolLeverChest : MonoBehaviour, IInteractable
             interactionCollider.enabled = false;
         }
 
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.OnLeverChestOpened();
+        }
+
         PlayCorrectSound();
 
         Debug.Log("Symbol lever chest opened.");

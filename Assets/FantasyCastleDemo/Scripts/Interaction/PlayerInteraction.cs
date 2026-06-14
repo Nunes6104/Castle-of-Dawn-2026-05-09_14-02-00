@@ -67,7 +67,16 @@ public class PlayerInteraction : MonoBehaviour
 
         if (interactionPromptText != null)
         {
-            interactionPromptText.text = defaultPromptMessage;
+            string promptMessage = currentInteractable != null
+                ? currentInteractable.InteractionText
+                : defaultPromptMessage;
+
+            if (string.IsNullOrWhiteSpace(promptMessage))
+            {
+                promptMessage = defaultPromptMessage;
+            }
+
+            interactionPromptText.text = promptMessage;
         }
     }
 

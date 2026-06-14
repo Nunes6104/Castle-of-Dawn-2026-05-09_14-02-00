@@ -132,6 +132,11 @@ public class StatuePuzzleChest : MonoBehaviour, IInteractable
             interactionCollider.enabled = false;
         }
 
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.OnStatueChestOpened();
+        }
+
         PlaySuccessSound();
 
         Debug.Log("Statue puzzle solved. Chest opened.");

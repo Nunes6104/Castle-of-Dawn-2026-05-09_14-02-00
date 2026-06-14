@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using StarterAssets;
+using UnityEngine.InputSystem;
 
 public class InventoryUI : MonoBehaviour
 {
@@ -18,25 +18,57 @@ public class InventoryUI : MonoBehaviour
     [Header("Default Icon")]
     [SerializeField] private Sprite defaultItemIcon;
 
+    [Header("Scripts to disable while inventory is open")]
+    [SerializeField] private Behaviour[] scriptsToDisableWhileOpen;
+
     private bool isOpen = false;
-    private StarterAssetsInputs starterAssetsInputs;
 
     private void Start()
     {
-        starterAssetsInputs = FindObjectOfType<StarterAssetsInputs>();
-
         if (inventoryPanel != null)
         {
             inventoryPanel.SetActive(false);
         }
 
-        SetCursorAndCameraState(false);
         ClearItemDetails();
+
+        if (GameUIState.Instance != null)
+        {
+            GameUIState.Instance.SetInventoryOpen(false);
+        }
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Tab))
+        if (Keyboard.current == null)
+        {
+            return;
+        }
+
+        if (GameUIState.Instance != null)
+        {
+            if (GameUIState.Instance.IsEndingOpen)
+            {
+                if (isOpen)
+                {
+                    CloseInventory();
+                }
+
+                return;
+            }
+
+            if (!isOpen && GameUIState.Instance.IsCodePanelOpen)
+            {
+                return;
+            }
+
+            if (!isOpen && GameUIState.Instance.IsPauseMenuOpen)
+            {
+                return;
+            }
+        }
+
+        if (Keyboard.current.tabKey.wasPressedThisFrame)
         {
             ToggleInventory();
         }
@@ -44,48 +76,75 @@ public class InventoryUI : MonoBehaviour
 
     public void ToggleInventory()
     {
-        isOpen = !isOpen;
-
-        if (inventoryPanel != null)
-        {
-            inventoryPanel.SetActive(isOpen);
-        }
-
-        SetCursorAndCameraState(isOpen);
-
         if (isOpen)
         {
-            RefreshInventory();
+            CloseInventory();
         }
         else
         {
-            ClearItemDetails();
+            OpenInventory();
         }
     }
 
-    private void SetCursorAndCameraState(bool inventoryOpen)
+    private void OpenInventory()
     {
-        if (inventoryOpen)
+        if (GameUIState.Instance != null)
         {
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
-
-            if (starterAssetsInputs != null)
+            if (GameUIState.Instance.IsEndingOpen ||
+                GameUIState.Instance.IsCodePanelOpen ||
+                GameUIState.Instance.IsPauseMenuOpen)
             {
-                starterAssetsInputs.cursorInputForLook = false;
-                starterAssetsInputs.look = Vector2.zero;
+                return;
             }
         }
-        else
+
+        isOpen = true;
+
+        if (inventoryPanel != null)
+        {
+            inventoryPanel.SetActive(true);
+        }
+
+        if (GameUIState.Instance != null)
+        {
+            GameUIState.Instance.SetInventoryOpen(true);
+        }
+
+        SetPlayerScripts(false);
+
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.OnInventoryOpened();
+        }
+
+        RefreshInventory();
+    }
+
+    private void CloseInventory()
+    {
+        isOpen = false;
+
+        if (inventoryPanel != null)
+        {
+            inventoryPanel.SetActive(false);
+        }
+
+        if (GameUIState.Instance != null)
+        {
+            GameUIState.Instance.SetInventoryOpen(false);
+        }
+
+        ClearItemDetails();
+
+        SetPlayerScripts(true);
+
+        if (GameUIState.Instance == null || !GameUIState.Instance.IsAnyUIOpen)
         {
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
-
-            if (starterAssetsInputs != null)
-            {
-                starterAssetsInputs.cursorInputForLook = true;
-                starterAssetsInputs.look = Vector2.zero;
-            }
         }
     }
 
@@ -178,6 +237,17 @@ public class InventoryUI : MonoBehaviour
         {
             selectedItemImage.sprite = null;
             selectedItemImage.enabled = false;
+        }
+    }
+
+    private void SetPlayerScripts(bool enabled)
+    {
+        foreach (Behaviour script in scriptsToDisableWhileOpen)
+        {
+            if (script != null)
+            {
+                script.enabled = enabled;
+            }
         }
     }
 }

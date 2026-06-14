@@ -26,19 +26,28 @@ public class CodeChestUI : MonoBehaviour
 
     private void Start()
     {
-        codePanel.SetActive(false);
+        if (codePanel != null)
+        {
+            codePanel.SetActive(false);
+        }
 
         if (GameUIState.Instance != null)
         {
             GameUIState.Instance.SetCodePanelOpen(false);
         }
 
-        confirmButton.onClick.AddListener(ConfirmCode);
+        if (confirmButton != null)
+        {
+            confirmButton.onClick.AddListener(ConfirmCode);
+        }
     }
 
-    private void Update()
+    private void LateUpdate()
     {
-        if (codePanel.activeSelf && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (codePanel != null &&
+            codePanel.activeSelf &&
+            Keyboard.current != null &&
+            Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             ClosePanel();
         }
@@ -48,9 +57,20 @@ public class CodeChestUI : MonoBehaviour
     {
         currentChest = chest;
 
-        codePanel.SetActive(true);
-        codeInputField.text = "";
-        messageText.text = "";
+        if (codePanel != null)
+        {
+            codePanel.SetActive(true);
+        }
+
+        if (codeInputField != null)
+        {
+            codeInputField.text = "";
+        }
+
+        if (messageText != null)
+        {
+            messageText.text = "";
+        }
 
         if (GameUIState.Instance != null)
         {
@@ -70,8 +90,11 @@ public class CodeChestUI : MonoBehaviour
             playerController.enabled = false;
         }
 
-        codeInputField.Select();
-        codeInputField.ActivateInputField();
+        if (codeInputField != null)
+        {
+            codeInputField.Select();
+            codeInputField.ActivateInputField();
+        }
     }
 
     private void ConfirmCode()
@@ -89,16 +112,27 @@ public class CodeChestUI : MonoBehaviour
         }
         else
         {
-            messageText.text = "Wrong code.";
-            codeInputField.text = "";
-            codeInputField.Select();
-            codeInputField.ActivateInputField();
+            if (messageText != null)
+            {
+                messageText.text = "Wrong code.";
+            }
+
+            if (codeInputField != null)
+            {
+                codeInputField.text = "";
+                codeInputField.Select();
+                codeInputField.ActivateInputField();
+            }
         }
     }
 
     private void ClosePanel()
     {
-        codePanel.SetActive(false);
+        if (codePanel != null)
+        {
+            codePanel.SetActive(false);
+        }
+
         currentChest = null;
 
         if (GameUIState.Instance != null)

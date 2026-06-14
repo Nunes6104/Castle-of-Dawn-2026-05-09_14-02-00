@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 public class PauseMenuUI : MonoBehaviour
 {
@@ -17,35 +18,95 @@ public class PauseMenuUI : MonoBehaviour
         Time.timeScale = 1f;
 
         if (pausePanel != null)
+        {
             pausePanel.SetActive(false);
+        }
 
         if (optionsPanel != null)
+        {
             optionsPanel.SetActive(false);
+        }
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        if (GameUIState.Instance != null)
+        {
+            GameUIState.Instance.SetPauseMenuOpen(false);
+        }
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Keyboard.current == null)
+        {
+            return;
+        }
+
+        if (GameUIState.Instance != null)
+        {
+            if (GameUIState.Instance.IsEndingOpen)
+            {
+                if (isPaused)
+                {
+                    ForceClosePauseMenu();
+                }
+
+                return;
+            }
+
+            if (GameUIState.Instance.IsCodePanelOpen)
+            {
+                return;
+            }
+
+            if (GameUIState.Instance.IsInventoryOpen)
+            {
+                return;
+            }
+        }
+
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             if (isPaused)
+            {
                 ResumeGame();
+            }
             else
+            {
                 PauseGame();
+            }
         }
     }
 
     public void PauseGame()
     {
+        if (GameUIState.Instance != null)
+        {
+            if (GameUIState.Instance.IsEndingOpen ||
+                GameUIState.Instance.IsCodePanelOpen ||
+                GameUIState.Instance.IsInventoryOpen)
+            {
+                return;
+            }
+        }
+
         isPaused = true;
 
         if (pausePanel != null)
+        {
             pausePanel.SetActive(true);
+        }
 
         if (optionsPanel != null)
+        {
             optionsPanel.SetActive(false);
+        }
+
+        if (GameUIState.Instance != null)
+        {
+            GameUIState.Instance.SetPauseMenuOpen(true);
+        }
 
         SetPlayerScripts(false);
 
@@ -59,10 +120,19 @@ public class PauseMenuUI : MonoBehaviour
         isPaused = false;
 
         if (pausePanel != null)
+        {
             pausePanel.SetActive(false);
+        }
 
         if (optionsPanel != null)
+        {
             optionsPanel.SetActive(false);
+        }
+
+        if (GameUIState.Instance != null)
+        {
+            GameUIState.Instance.SetPauseMenuOpen(false);
+        }
 
         Time.timeScale = 1f;
         SetPlayerScripts(true);
@@ -71,22 +141,70 @@ public class PauseMenuUI : MonoBehaviour
         Cursor.visible = false;
     }
 
-    public void OpenOptions()
+    private void ForceClosePauseMenu()
     {
+        isPaused = false;
+
         if (pausePanel != null)
+        {
             pausePanel.SetActive(false);
+        }
 
         if (optionsPanel != null)
+        {
+            optionsPanel.SetActive(false);
+        }
+
+        if (GameUIState.Instance != null)
+        {
+            GameUIState.Instance.SetPauseMenuOpen(false);
+        }
+
+        Time.timeScale = 1f;
+    }
+
+    public void OpenOptions()
+    {
+        if (GameUIState.Instance != null)
+        {
+            if (GameUIState.Instance.IsEndingOpen ||
+                GameUIState.Instance.IsCodePanelOpen ||
+                GameUIState.Instance.IsInventoryOpen)
+            {
+                return;
+            }
+        }
+
+        if (pausePanel != null)
+        {
+            pausePanel.SetActive(false);
+        }
+
+        if (optionsPanel != null)
+        {
             optionsPanel.SetActive(true);
+        }
     }
 
     public void CloseOptions()
     {
+        if (GameUIState.Instance != null)
+        {
+            if (GameUIState.Instance.IsEndingOpen)
+            {
+                return;
+            }
+        }
+
         if (optionsPanel != null)
+        {
             optionsPanel.SetActive(false);
+        }
 
         if (pausePanel != null)
+        {
             pausePanel.SetActive(true);
+        }
     }
 
     public void SetVolume(float value)
@@ -98,8 +216,16 @@ public class PauseMenuUI : MonoBehaviour
     {
         Time.timeScale = 1f;
         SetPlayerScripts(true);
+
+        if (GameUIState.Instance != null)
+        {
+            GameUIState.Instance.SetPauseMenuOpen(false);
+            GameUIState.Instance.SetEndingOpen(false);
+        }
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
         SceneManager.LoadScene("MainMenu");
     }
 
@@ -113,7 +239,9 @@ public class PauseMenuUI : MonoBehaviour
         foreach (Behaviour script in scriptsToDisable)
         {
             if (script != null)
+            {
                 script.enabled = enabled;
+            }
         }
     }
 }

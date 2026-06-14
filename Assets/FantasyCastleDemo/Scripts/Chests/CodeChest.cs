@@ -54,6 +54,11 @@ public class CodeChest : MonoBehaviour, IInteractable
             return;
         }
 
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.OnCodeChestInteractedWithoutCode();
+        }
+
         if (CodeChestUI.Instance != null)
         {
             CodeChestUI.Instance.OpenPanel(this);
@@ -103,6 +108,11 @@ public class CodeChest : MonoBehaviour, IInteractable
         if (interactionCollider != null)
         {
             interactionCollider.enabled = false;
+        }
+
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.OnCodeChestOpened();
         }
 
         PlaySuccessSound();
